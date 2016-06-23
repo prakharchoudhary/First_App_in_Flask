@@ -17,7 +17,7 @@ def HomePage():
 	restaurant = session.query(Restaurant).all()
 	return render_template('homepage.html',restaurant=restaurant)
 
-@app.route('/restaurants/<int:restaurant_id>/')		#lets us use a variable in the path name
+@app.route('/restaurants/<int:restaurant_id>/')		#/<int:..>/ lets us use a variable in the path name
 def restaurantMenu(restaurant_id):
 	restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
 	items = session.query(MenuItem).filter_by(restaurant_id = restaurant.id)
@@ -28,27 +28,18 @@ def restaurantMenu(restaurant_id):
 @app.route('/restaurants/new/', methods=['GET', 'POST'])
 def newRestaurant():
 	if request.method == 'POST':
-		newRestaurant = Restaurant(name=request.form['name'])
+		last_id = session.query(Restaurant).filter_by(id=restaurant_id).last()
+		newRestaurant = Restaurant(name=request.form['name'], price=request.form['price'], description=request.form['description'], restaurant_id= last_id + 1)
 		session.add(newRestaurant)
 		session.commit()
-		return redirect(url_for('HomePage'))
+		return redirect('homepage.html', restaurant=newRestaurant)
 	else:
-		return render_template('new_rest.html')
-
-@app.route('/restaurants/<int:restaurant_id>/delete/', methods=['GET', 'POST'])
-def deleteRestaurant(restaurant_id):
-	itemToDelete = session.query(Restaurant).filter_by(id=restaurant_id).one()
-	if request.method == 'POST':
-		session.delete(itemToDelete)
-		session.commit()
-		return redirect(url_for('HomePage', restaurant_id=restaurant_id))
-	else:
-		return render_template('delete_rest.html', restaurant=itemToDelete)
+		return render_template('new_rest.html', restaurant=restaurant)
 
 @app.route('/restaurants/<int:restaurant_id>/new/', methods=['GET', 'POST'])
 def newMenuItem(restaurant_id):
 	if request.method == 'POST':
-		newItem = MenuItem(name=request.form['name'], restaurant_id = restaurant_id)
+		newItem = MenuItem(name=request.form['name'], price=request.form['price'], description=request.form['description'], restaurant_id = restaurant_id)
 		session.add(newItem)
 		session.commit()
 		return redirect(url_for('restaurantMenu', restaurant_id= restaurant_id))
